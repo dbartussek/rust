@@ -77,4 +77,8 @@ pub mod solaris;
 #[cfg(target_os = "vxworks")]
 pub mod vxworks;
 
+#[cfg(all(target_os = "3ds", target_env = "ctru"))]
+#[stable(feature = "3ds_ctru", since = "0.0.0")]
+pub mod ds3_ctru;
+
 pub mod raw;
