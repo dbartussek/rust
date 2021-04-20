@@ -46,6 +46,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(all(target_vendor = "fortanix", target_env = "sgx"))] {
         mod sgx;
         pub use self::sgx::*;
+    } else if #[cfg(target_os = "3ds")] {
+        mod ds3_ctru;
+        pub use self::ds3_ctru::*;
     } else {
         mod unsupported;
         pub use self::unsupported::*;
