@@ -1,66 +1,45 @@
-use crate::cell::Cell;
+use super::mutex::Mutex;
 
-pub struct RWLock {
-    // This platform has no threads, so we can use a Cell here.
-    mode: Cell<isize>,
-}
-
-unsafe impl Send for RWLock {}
-unsafe impl Sync for RWLock {} // no threads on this platform
+/// TODO This is obviusly not a proper implementation, just a quick hacky one.
+pub struct RWLock(Mutex);
 
 impl RWLock {
     pub const fn new() -> RWLock {
-        RWLock { mode: Cell::new(0) }
+        RWLock(Mutex::new())
     }
 
     #[inline]
     pub unsafe fn read(&self) {
-        let m = self.mode.get();
-        if m >= 0 {
-            self.mode.set(m + 1);
-        } else {
-            rtabort!("rwlock locked for writing");
-        }
+        self.write()
     }
 
     #[inline]
     pub unsafe fn try_read(&self) -> bool {
-        let m = self.mode.get();
-        if m >= 0 {
-            self.mode.set(m + 1);
-            true
-        } else {
-            false
-        }
+        self.try_write()
     }
 
     #[inline]
     pub unsafe fn write(&self) {
-        if self.mode.replace(-1) != 0 {
-            rtabort!("rwlock locked for reading")
-        }
+        self.0.lock()
     }
 
     #[inline]
     pub unsafe fn try_write(&self) -> bool {
-        if self.mode.get() == 0 {
-            self.mode.set(-1);
-            true
-        } else {
-            false
-        }
+        self.0.try_lock()
     }
 
     #[inline]
     pub unsafe fn read_unlock(&self) {
-        self.mode.set(self.mode.get() - 1);
+        self.write_unlock()
     }
 
     #[inline]
     pub unsafe fn write_unlock(&self) {
-        assert_eq!(self.mode.replace(0), -1);
+        self.0.unlock()
     }
 
     #[inline]
-    pub unsafe fn destroy(&self) {}
+    pub unsafe fn destroy(&self) {
+        self.0.destroy();
+    }
 }

@@ -1,61 +1,74 @@
-use crate::cell::Cell;
+use super::ctru;
+use crate::cell::UnsafeCell;
+use crate::mem::MaybeUninit;
 
-pub struct Mutex {
-    // This platform has no threads, so we can use a Cell here.
-    locked: Cell<bool>,
-}
-
-pub type MovableMutex = Mutex;
+pub struct Mutex(UnsafeCell<ctru::LightLock>);
 
 unsafe impl Send for Mutex {}
-unsafe impl Sync for Mutex {} // no threads on this platform
+unsafe impl Sync for Mutex {}
+
+pub type MovableMutex = Box<Mutex>;
 
 impl Mutex {
     pub const fn new() -> Mutex {
-        Mutex { locked: Cell::new(false) }
+        Mutex(UnsafeCell::new(1))
     }
 
     #[inline]
-    pub unsafe fn init(&mut self) {}
+    pub unsafe fn init(&mut self) {
+        ctru::LightLock_Init(self.0.get())
+    }
 
     #[inline]
     pub unsafe fn lock(&self) {
-        assert_eq!(self.locked.replace(true), false, "cannot recursively acquire mutex");
+        ctru::LightLock_Lock(self.0.get())
     }
 
     #[inline]
     pub unsafe fn unlock(&self) {
-        self.locked.set(false);
+        ctru::LightLock_Unlock(self.0.get())
     }
 
     #[inline]
     pub unsafe fn try_lock(&self) -> bool {
-        self.locked.replace(true) == false
+        ctru::LightLock_TryLock(self.0.get()) == 0
     }
 
     #[inline]
     pub unsafe fn destroy(&self) {}
 }
 
-// All empty stubs because this platform does not yet support threads, so lock
-// acquisition always succeeds.
-pub struct ReentrantMutex {}
+pub struct ReentrantMutex(UnsafeCell<ctru::RecursiveLock>);
 
 impl ReentrantMutex {
     pub const unsafe fn uninitialized() -> ReentrantMutex {
-        ReentrantMutex {}
+        ReentrantMutex(UnsafeCell::new(ctru::RecursiveLock{
+            lock: 1,
+            thread_tag: 0,
+            counter: 0,
+        }))
     }
 
-    pub unsafe fn init(&self) {}
+    #[inline]
+    pub unsafe fn init(&mut self) {
+        ctru::RecursiveLock_Init(self.0.get())
+    }
 
-    pub unsafe fn lock(&self) {}
+    #[inline]
+    pub unsafe fn lock(&self) {
+        ctru::RecursiveLock_Lock(self.0.get())
+    }
+
+    #[inline]
+    pub unsafe fn unlock(&self) {
+        ctru::RecursiveLock_Unlock(self.0.get())
+    }
 
     #[inline]
     pub unsafe fn try_lock(&self) -> bool {
-        true
+        ctru::RecursiveLock_TryLock(self.0.get()) == 0
     }
 
-    pub unsafe fn unlock(&self) {}
-
+    #[inline]
     pub unsafe fn destroy(&self) {}
 }
