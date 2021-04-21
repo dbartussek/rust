@@ -20,7 +20,7 @@ impl Thread {
         let thread = ctru::threadCreate(
             Some(thread_runner),
             transmute(Box::into_raw(Box::new(p))),
-            stack,
+            stack as u32,
             0x30,
             -1,
             false,
