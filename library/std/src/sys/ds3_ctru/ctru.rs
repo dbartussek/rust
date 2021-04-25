@@ -421,15 +421,15 @@ pub const CLOCK_DISABLED: u32 = 0;
 pub const CLOCK_ALLOWED: u32 = 1;
 pub const CLOCK_DISALLOWED: u32 = 0;
 pub const TIMER_ABSTIME: u32 = 4;
-pub const SOL_SOCKET: u32 = 65535;
+pub const SOL_SOCKET: i32 = 65535;
 pub const PF_UNSPEC: u32 = 0;
 pub const PF_INET: u32 = 2;
 pub const PF_INET6: u32 = 23;
 pub const AF_UNSPEC: u32 = 0;
-pub const AF_INET: u32 = 2;
-pub const AF_INET6: u32 = 23;
-pub const SOCK_STREAM: u32 = 1;
-pub const SOCK_DGRAM: u32 = 2;
+pub const AF_INET: i32 = 2;
+pub const AF_INET6: i32 = 23;
+pub const SOCK_STREAM: i32 = 1;
+pub const SOCK_DGRAM: i32 = 2;
 pub const MSG_OOB: u32 = 1;
 pub const MSG_PEEK: u32 = 2;
 pub const MSG_DONTWAIT: u32 = 4;
@@ -440,30 +440,30 @@ pub const MSG_NOSIGNAL: u32 = 0;
 pub const SHUT_RD: u32 = 0;
 pub const SHUT_WR: u32 = 1;
 pub const SHUT_RDWR: u32 = 2;
-pub const SO_REUSEADDR: u32 = 4;
-pub const SO_LINGER: u32 = 128;
-pub const SO_OOBINLINE: u32 = 256;
-pub const SO_SNDBUF: u32 = 4097;
-pub const SO_RCVBUF: u32 = 4098;
-pub const SO_SNDLOWAT: u32 = 4099;
-pub const SO_RCVLOWAT: u32 = 4100;
-pub const SO_TYPE: u32 = 4104;
-pub const SO_ERROR: u32 = 4105;
-pub const SO_BROADCAST: u32 = 0;
+pub const SO_REUSEADDR: i32 = 4;
+pub const SO_LINGER: i32 = 128;
+pub const SO_OOBINLINE: i32 = 256;
+pub const SO_SNDBUF: i32 = 4097;
+pub const SO_RCVBUF: i32 = 4098;
+pub const SO_SNDLOWAT: i32 = 4099;
+pub const SO_RCVLOWAT: i32 = 4100;
+pub const SO_TYPE: i32 = 4104;
+pub const SO_ERROR: i32 = 4105;
+pub const SO_BROADCAST: i32 = 0;
 pub const INADDR_LOOPBACK: u32 = 2130706433;
 pub const INADDR_ANY: u32 = 0;
 pub const INADDR_BROADCAST: u32 = 4294967295;
 pub const INADDR_NONE: u32 = 4294967295;
 pub const INET_ADDRSTRLEN: u32 = 16;
-pub const IPPROTO_IP: u32 = 0;
+pub const IPPROTO_IP: i32 = 0;
 pub const IPPROTO_UDP: u32 = 17;
 pub const IPPROTO_TCP: u32 = 6;
 pub const IP_TOS: u32 = 7;
-pub const IP_TTL: u32 = 8;
-pub const IP_MULTICAST_LOOP: u32 = 9;
-pub const IP_MULTICAST_TTL: u32 = 10;
-pub const IP_ADD_MEMBERSHIP: u32 = 11;
-pub const IP_DROP_MEMBERSHIP: u32 = 12;
+pub const IP_TTL: i32 = 8;
+pub const IP_MULTICAST_LOOP: i32 = 9;
+pub const IP_MULTICAST_TTL: i32 = 10;
+pub const IP_ADD_MEMBERSHIP: i32 = 11;
+pub const IP_DROP_MEMBERSHIP: i32 = 12;
 pub const SOL_CONFIG: u32 = 65534;
 pub const ROUTING_FLAG_G: u32 = 1;
 pub const TCP_STATE_CLOSED: u32 = 1;
@@ -26158,7 +26158,7 @@ extern "C" {
     pub fn send(
         sockfd: crate::os::raw::c_int,
         buf: *const crate::os::raw::c_void,
-        len: size_t,
+        len: crate::os::raw::c_int,
         flags: crate::os::raw::c_int,
     ) -> ssize_t;
 }
@@ -26166,7 +26166,7 @@ extern "C" {
     pub fn sendto(
         sockfd: crate::os::raw::c_int,
         buf: *const crate::os::raw::c_void,
-        len: size_t,
+        len: crate::os::raw::c_int,
         flags: crate::os::raw::c_int,
         dest_addr: *const sockaddr,
         addrlen: socklen_t,

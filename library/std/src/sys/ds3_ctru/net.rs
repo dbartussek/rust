@@ -4,6 +4,149 @@ use crate::io::{self, IoSlice, IoSliceMut};
 use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
 use crate::sys::{unsupported, Void};
 use crate::time::Duration;
+use crate::ops::Deref;
+use crate::os::raw::*;
+
+pub fn init() {
+}
+
+#[allow(nonstandard_style)]
+pub type wrlen_t = i32;
+
+#[doc(hidden)]
+pub trait IsMinusOne {
+    fn is_minus_one(&self) -> bool;
+}
+
+macro_rules! impl_is_minus_one {
+    ($($t:ident)*) => ($(impl IsMinusOne for $t {
+        fn is_minus_one(&self) -> bool {
+            *self == -1
+        }
+    })*)
+}
+
+impl_is_minus_one! { i8 i16 i32 i64 isize }
+
+pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
+    unsupported()
+}
+/// A variant of `cvt` for `getaddrinfo` which return 0 for a success.
+pub fn cvt_gai(err: c_int) -> io::Result<()> {
+    unsupported()
+}
+
+/// Just to provide the same interface as sys/unix/net.rs
+pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>
+    where
+        T: IsMinusOne,
+        F: FnMut() -> T,
+{
+    cvt(f())
+}
+
+pub struct SocketInner(Void);
+
+
+impl Deref for SocketInner {
+    type Target = i32;
+
+    fn deref(&self) -> &Self::Target {
+        match self.0 {}
+    }
+}
+
+impl fmt::Debug for SocketInner {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {}
+    }
+}
+
+pub struct Socket{
+    inner: SocketInner
+}
+
+impl Socket {
+    pub fn new(addr: &SocketAddr, flags: c_int) -> io::Result<Self> {
+        unsupported()
+    }
+
+    pub fn duplicate(&self) -> io::Result<Self> {
+        match self.inner.0 {}
+    }
+
+    pub fn as_inner(&self) -> SocketInner {
+        match self.inner.0 {}
+    }
+
+    pub fn set_nonblocking(&self, nonblocking: bool) -> ! {
+        match self.inner.0 {}
+    }
+
+    pub fn take_error(&self) -> ! {
+        match self.inner.0 {}
+    }
+
+    pub fn peek(&self, buf: &mut[u8]) -> ! {
+        match self.inner.0 {}
+    }
+
+    pub fn timeout(&self, kind: c_int) -> io::Result<Option<Duration>> {
+        match self.inner.0 {}
+    }
+    pub fn set_timeout(&self, dur: Option<Duration>, kind: c_int) -> io::Result<()> {
+        match self.inner.0 {}
+    }
+
+    pub fn read(&self, buf: &mut [u8]) -> ! {
+        match self.inner.0 {}
+    }
+
+    pub fn peek_from(&self, buf: &mut[u8]) -> ! {
+        match self.inner.0 {}
+    }
+    pub fn recv_from(&self, buf: &mut[u8]) -> ! {
+        match self.inner.0 {}
+    }
+
+    pub fn shutdown(&self, how: Shutdown) -> io::Result<()> {
+        match self.inner.0 {}
+    }
+
+    pub fn set_nodelay(&self, nodelay: bool) -> io::Result<()> {
+        match self.inner.0 {}
+    }
+
+    pub fn nodelay(&self) -> io::Result<bool> {
+        match self.inner.0 {}
+    }
+
+    pub fn accept(&self, storage: *mut SocketAddr, len: *mut c_uint) -> io::Result<Socket> {
+        match self.inner.0 {}
+    }
+
+    #[inline]
+    pub fn is_write_vectored(&self) -> bool {
+        false
+    }
+
+    #[inline]
+    pub fn is_read_vectored(&self) -> bool {
+        false
+    }
+
+    pub fn write_vectored(&self, bufs: &[IoSlice]) -> io::Result<usize> {
+        unsupported()
+    }
+
+    pub fn read_vectored(&self, bufs: &mut [IoSliceMut]) -> io::Result<usize> {
+        unsupported()
+    }
+
+    pub fn connect_timeout(&self, addr: &SocketAddr, timeout: Duration) -> io::Result<()> {
+        unsupported()
+    }
+}
 
 pub struct TcpStream(Void);
 
@@ -324,21 +467,8 @@ impl<'a> TryFrom<(&'a str, u16)> for LookupHost {
 
 #[allow(nonstandard_style)]
 pub mod netc {
-    pub const AF_INET: u8 = 0;
-    pub const AF_INET6: u8 = 1;
-    pub type sa_family_t = u8;
-
-    #[derive(Copy, Clone)]
-    pub struct in_addr {
-        pub s_addr: u32,
-    }
-
-    #[derive(Copy, Clone)]
-    pub struct sockaddr_in {
-        pub sin_family: sa_family_t,
-        pub sin_port: u16,
-        pub sin_addr: in_addr,
-    }
+    pub use crate::sys::ctru::*;
+    use crate::os::raw::*;
 
     #[derive(Copy, Clone)]
     pub struct in6_addr {
@@ -354,8 +484,41 @@ pub mod netc {
         pub sin6_scope_id: u32,
     }
 
-    #[derive(Copy, Clone)]
-    pub struct sockaddr {}
+    #[repr(C)]
+    pub struct ipv6_mreq {
+        pub ipv6mr_multiaddr: in6_addr,
+        pub ipv6mr_interface: c_uint,
+    }
 
-    pub type socklen_t = usize;
+    pub const IPPROTO_IPV6: c_int = -1;
+    pub const IPV6_MULTICAST_LOOP: c_int = -1;
+    pub const IPV6_V6ONLY: c_int = -1;
+    pub const IPV6_ADD_MEMBERSHIP: c_int = -1;
+    pub const IPV6_DROP_MEMBERSHIP: c_int = -1;
+    pub const SO_RCVTIMEO: c_int = -1;
+    pub const SO_SNDTIMEO: c_int = -1;
+
+    #[repr(C)]
+    pub struct addrinfo {
+        pub ai_flags: c_int,
+        pub ai_family: c_int,
+        pub ai_socktype: c_int,
+        pub ai_protocol: c_int,
+        pub ai_addrlen: size_t,
+        pub ai_canonname: *mut c_char,
+        pub ai_addr: *mut sockaddr,
+        pub ai_next: *mut addrinfo,
+    }
+
+    pub fn getaddrinfo(
+        node: *const c_char,
+        service: *const c_char,
+        hints: *const addrinfo,
+        res: *mut *mut addrinfo,
+    ) -> c_int {
+        unimplemented!("getaddrinfo")
+    }
+    pub fn freeaddrinfo(res: *mut addrinfo) {
+        unimplemented!("freeaddrinfo")
+    }
 }
