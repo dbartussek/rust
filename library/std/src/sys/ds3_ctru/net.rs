@@ -2,10 +2,12 @@ use crate::convert::TryFrom;
 use crate::fmt;
 use crate::io::{self, IoSlice, IoSliceMut};
 use crate::net::{Ipv4Addr, Ipv6Addr, Shutdown, SocketAddr};
-use crate::sys::{unsupported, Void};
+use crate::sys::*;
 use crate::time::Duration;
 use crate::ops::Deref;
 use crate::os::raw::*;
+
+pub use crate::sys::{cvt, cvt_gai, cvt_r};
 
 pub fn init() {
 }
@@ -16,33 +18,6 @@ pub type wrlen_t = usize;
 #[doc(hidden)]
 pub trait IsMinusOne {
     fn is_minus_one(&self) -> bool;
-}
-
-macro_rules! impl_is_minus_one {
-    ($($t:ident)*) => ($(impl IsMinusOne for $t {
-        fn is_minus_one(&self) -> bool {
-            *self == -1
-        }
-    })*)
-}
-
-impl_is_minus_one! { i8 i16 i32 i64 isize }
-
-pub fn cvt<T: IsMinusOne>(t: T) -> io::Result<T> {
-    unsupported()
-}
-/// A variant of `cvt` for `getaddrinfo` which return 0 for a success.
-pub fn cvt_gai(err: c_int) -> io::Result<()> {
-    unsupported()
-}
-
-/// Just to provide the same interface as sys/unix/net.rs
-pub fn cvt_r<T, F>(mut f: F) -> io::Result<T>
-    where
-        T: IsMinusOne,
-        F: FnMut() -> T,
-{
-    cvt(f())
 }
 
 pub struct SocketInner(Void);

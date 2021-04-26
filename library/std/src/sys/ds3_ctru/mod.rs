@@ -2,18 +2,21 @@
 
 pub mod ctru;
 
+#[path = "../unix/path.rs"]
+pub mod path;
+#[path = "../unix/io.rs"]
+pub mod io;
+
 pub mod alloc;
 pub mod args;
 pub mod cmath;
 pub mod condvar;
 pub mod env;
+pub mod fd;
 pub mod fs;
-pub mod io;
 pub mod mutex;
 pub mod net;
 pub mod os;
-#[path = "../unix/path.rs"]
-pub mod path;
 pub mod pipe;
 pub mod process;
 pub mod rwlock;

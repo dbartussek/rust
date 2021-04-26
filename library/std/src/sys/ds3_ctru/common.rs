@@ -1,4 +1,5 @@
 use crate::io as std_io;
+use crate::os::raw::*;
 
 pub mod memchr {
     pub use core::slice::memchr::{memchr, memrchr};
@@ -25,7 +26,7 @@ pub fn unsupported_err() -> std_io::Error {
 }
 
 pub fn decode_error_kind(_code: i32) -> crate::io::ErrorKind {
-    crate::io::ErrorKind::Other
+    std_io::ErrorKind::Other
 }
 
 pub fn abort_internal() -> ! {
@@ -51,4 +52,46 @@ pub unsafe fn strlen(mut s: *const c_char) -> usize {
         }
         n
     }
+}
+
+
+#[doc(hidden)]
+pub trait IsMinusOne {
+    fn is_minus_one(&self) -> bool;
+}
+
+macro_rules! impl_is_minus_one {
+    ($($t:ident)*) => ($(impl IsMinusOne for $t {
+        fn is_minus_one(&self) -> bool {
+            *self == -1
+        }
+    })*)
+}
+
+impl_is_minus_one! { i8 i16 i32 i64 isize }
+
+pub fn cvt<T: IsMinusOne>(t: T) -> crate::io::Result<T> {
+    if t.is_minus_one() { Err(crate::io::Error::last_os_error()) } else { Ok(t) }
+}
+
+pub fn cvt_r<T, F>(mut f: F) -> crate::io::Result<T>
+    where
+        T: IsMinusOne,
+        F: FnMut() -> T,
+{
+    loop {
+        match cvt(f()) {
+            Err(ref e) if e.kind() == crate::io::ErrorKind::Interrupted => {}
+            other => return other,
+        }
+    }
+}
+
+pub fn cvt_nz(error: libc::c_int) -> crate::io::Result<()> {
+    if error == 0 { Ok(()) } else { Err(crate::io::Error::from_raw_os_error(error)) }
+}
+
+/// A variant of `cvt` for `getaddrinfo` which return 0 for a success.
+pub fn cvt_gai(err: c_int) -> crate::io::Result<()> {
+    unsupported()
 }
