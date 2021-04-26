@@ -13,7 +13,7 @@ use crate::sys::net::netc as c;
 use crate::sys::net::{cvt, cvt_gai, cvt_r, init, wrlen_t, Socket};
 use crate::sys_common::{AsInner, FromInner, IntoInner};
 use crate::time::Duration;
-use crate::os::raw::{c_int, c_void, c_uint};
+use libc::{c_int, c_void};
 
 cfg_if::cfg_if! {
     if #[cfg(any(
@@ -117,8 +117,8 @@ fn to_ipv6mr_interface(value: u32) -> c_int {
 }
 
 #[cfg(not(target_os = "android"))]
-fn to_ipv6mr_interface(value: u32) -> c_uint {
-    value as c_uint
+fn to_ipv6mr_interface(value: u32) -> libc::c_uint {
+    value as libc::c_uint
 }
 
 ////////////////////////////////////////////////////////////////////////////////

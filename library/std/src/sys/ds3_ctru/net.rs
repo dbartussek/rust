@@ -11,7 +11,7 @@ pub fn init() {
 }
 
 #[allow(nonstandard_style)]
-pub type wrlen_t = i32;
+pub type wrlen_t = usize;
 
 #[doc(hidden)]
 pub trait IsMinusOne {
@@ -465,60 +465,4 @@ impl<'a> TryFrom<(&'a str, u16)> for LookupHost {
     }
 }
 
-#[allow(nonstandard_style)]
-pub mod netc {
-    pub use crate::sys::ctru::*;
-    use crate::os::raw::*;
-
-    #[derive(Copy, Clone)]
-    pub struct in6_addr {
-        pub s6_addr: [u8; 16],
-    }
-
-    #[derive(Copy, Clone)]
-    pub struct sockaddr_in6 {
-        pub sin6_family: sa_family_t,
-        pub sin6_port: u16,
-        pub sin6_addr: in6_addr,
-        pub sin6_flowinfo: u32,
-        pub sin6_scope_id: u32,
-    }
-
-    #[repr(C)]
-    pub struct ipv6_mreq {
-        pub ipv6mr_multiaddr: in6_addr,
-        pub ipv6mr_interface: c_uint,
-    }
-
-    pub const IPPROTO_IPV6: c_int = -1;
-    pub const IPV6_MULTICAST_LOOP: c_int = -1;
-    pub const IPV6_V6ONLY: c_int = -1;
-    pub const IPV6_ADD_MEMBERSHIP: c_int = -1;
-    pub const IPV6_DROP_MEMBERSHIP: c_int = -1;
-    pub const SO_RCVTIMEO: c_int = -1;
-    pub const SO_SNDTIMEO: c_int = -1;
-
-    #[repr(C)]
-    pub struct addrinfo {
-        pub ai_flags: c_int,
-        pub ai_family: c_int,
-        pub ai_socktype: c_int,
-        pub ai_protocol: c_int,
-        pub ai_addrlen: size_t,
-        pub ai_canonname: *mut c_char,
-        pub ai_addr: *mut sockaddr,
-        pub ai_next: *mut addrinfo,
-    }
-
-    pub fn getaddrinfo(
-        node: *const c_char,
-        service: *const c_char,
-        hints: *const addrinfo,
-        res: *mut *mut addrinfo,
-    ) -> c_int {
-        unimplemented!("getaddrinfo")
-    }
-    pub fn freeaddrinfo(res: *mut addrinfo) {
-        unimplemented!("freeaddrinfo")
-    }
-}
+pub use libc as netc;

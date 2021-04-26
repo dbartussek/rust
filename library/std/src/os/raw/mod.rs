@@ -47,6 +47,7 @@ macro_rules! type_alias {
 
 type_alias! { "char.md", c_char = u8, NonZero_c_char = NonZeroU8;
 #[cfg(any(
+    all(target_os = "3ds", target_env = "ctru"),
     all(
         target_os = "linux",
         any(
@@ -89,6 +90,7 @@ type_alias! { "char.md", c_char = u8, NonZero_c_char = NonZeroU8;
 ))]}
 type_alias! { "char.md", c_char = i8, NonZero_c_char = NonZeroI8;
 #[cfg(not(any(
+    all(target_os = "3ds", target_env = "ctru"),
     all(
         target_os = "linux",
         any(
